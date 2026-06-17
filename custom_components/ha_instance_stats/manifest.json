@@ -1,0 +1,13 @@
+{
+  "domain": "ha_instance_stats",
+  "name": "HA Instance Stats",
+  "version": "2.0.0",
+  "documentation": "https://github.com/olli-dot-dev/ha-instance-stats",
+  "issue_tracker": "https://github.com/olli-dot-dev/ha-instance-stats/issues",
+  "codeowners": ["@olli-dot-dev"],
+  "requirements": ["psutil>=5.9.0"],
+  "dependencies": [],
+  "after_dependencies": [],
+  "iot_class": "local_polling",
+  "config_flow": true
+}
