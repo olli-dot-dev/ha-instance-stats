@@ -6,53 +6,54 @@
 
 const CARD_VERSION = "2.0.0";
 
-// Groups with their stats — renders section headers between groups
+// fn = friendly_name HA assigns (= "HA Stats " + description.name from sensor.py)
+// Used for robust entity discovery via hass.states regardless of assigned entity_id
 const STAT_GROUPS = [
   {
     label: "Configuration",
     stats: [
-      { key: "automations",       entity: "sensor.ha_stats_automation_count",        label: "Automations",          icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
-      { key: "automations_yaml",  entity: "sensor.ha_stats_automations_yaml_size",    label: "automations.yaml",     icon: "mdi:file-code",        unit: "KB", color: "#81C784" },
-      { key: "automation_failed", entity: "sensor.ha_stats_unavailable_automations",  label: "Failed Automations",   icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
-      { key: "blueprints",        entity: "sensor.ha_stats_blueprint_count",          label: "Blueprints",           icon: "mdi:source-branch",    unit: "",   color: "#B39DDB" },
-      { key: "scripts",           entity: "sensor.ha_stats_script_count",             label: "Scripts",              icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
-      { key: "scenes",            entity: "sensor.ha_stats_scene_count",              label: "Scenes",               icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
+      { key: "automations",       fn: "HA Stats Automation Count",        entity: "sensor.ha_stats_automation_count",        label: "Automations",         icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
+      { key: "automations_yaml",  fn: "HA Stats Automations YAML Size",   entity: "sensor.ha_stats_automations_yaml_size",    label: "automations.yaml",    icon: "mdi:file-code",        unit: "KB", color: "#81C784" },
+      { key: "automation_failed", fn: "HA Stats Unavailable Automations", entity: "sensor.ha_stats_unavailable_automations",  label: "Failed Automations",  icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
+      { key: "blueprints",        fn: "HA Stats Blueprint Count",         entity: "sensor.ha_stats_blueprint_count",          label: "Blueprints",          icon: "mdi:source-branch",    unit: "",   color: "#B39DDB" },
+      { key: "scripts",           fn: "HA Stats Script Count",            entity: "sensor.ha_stats_script_count",             label: "Scripts",             icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
+      { key: "scenes",            fn: "HA Stats Scene Count",             entity: "sensor.ha_stats_scene_count",              label: "Scenes",              icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
     ],
   },
   {
     label: "Devices & Entities",
     stats: [
-      { key: "integrations",  entity: "sensor.ha_stats_active_integrations", label: "Active Integrations",  icon: "mdi:puzzle",           unit: "", color: "#FFB74D" },
-      { key: "hacs",          entity: "sensor.ha_stats_hacs_installed",      label: "HACS Extensions",      icon: "mdi:store",            unit: "", color: "#FF8A65" },
-      { key: "entities",      entity: "sensor.ha_stats_entity_count",        label: "Entities",             icon: "mdi:counter",          unit: "", color: "#CE93D8" },
-      { key: "devices",       entity: "sensor.ha_stats_device_count",        label: "Devices",              icon: "mdi:devices",          unit: "", color: "#F48FB1" },
-      { key: "persons",       entity: "sensor.ha_stats_person_count",        label: "Persons",              icon: "mdi:account-group",    unit: "", color: "#80CBC4" },
-      { key: "persons_home",  entity: "sensor.ha_stats_persons_home",        label: "Persons Home",         icon: "mdi:account-check",    unit: "", color: "#A5D6A7" },
-      { key: "zones",         entity: "sensor.ha_stats_zone_count",          label: "Zones",                icon: "mdi:map-marker-radius", unit: "", color: "#FFF59D" },
+      { key: "integrations",  fn: "HA Stats Active Integrations", entity: "sensor.ha_stats_active_integrations", label: "Active Integrations", icon: "mdi:puzzle",            unit: "", color: "#FFB74D" },
+      { key: "hacs",          fn: "HA Stats HACS Installed",      entity: "sensor.ha_stats_hacs_installed",      label: "HACS Extensions",     icon: "mdi:store",             unit: "", color: "#FF8A65" },
+      { key: "entities",      fn: "HA Stats Entity Count",        entity: "sensor.ha_stats_entity_count",        label: "Entities",            icon: "mdi:counter",           unit: "", color: "#CE93D8" },
+      { key: "devices",       fn: "HA Stats Device Count",        entity: "sensor.ha_stats_device_count",        label: "Devices",             icon: "mdi:devices",           unit: "", color: "#F48FB1" },
+      { key: "persons",       fn: "HA Stats Person Count",        entity: "sensor.ha_stats_person_count",        label: "Persons",             icon: "mdi:account-group",     unit: "", color: "#80CBC4" },
+      { key: "persons_home",  fn: "HA Stats Persons Home",        entity: "sensor.ha_stats_persons_home",        label: "Persons Home",        icon: "mdi:account-check",     unit: "", color: "#A5D6A7" },
+      { key: "zones",         fn: "HA Stats Zone Count",          entity: "sensor.ha_stats_zone_count",          label: "Zones",               icon: "mdi:map-marker-radius", unit: "", color: "#FFF59D" },
     ],
   },
   {
     label: "System",
     stats: [
-      { key: "cpu_used",    entity: "sensor.ha_stats_cpu_usage",          label: "CPU Usage",      icon: "mdi:cpu-64-bit",    unit: "%",  color: "#EF9A9A", isBar: true },
-      { key: "cpu_freq",    entity: "sensor.ha_stats_cpu_frequency",      label: "CPU Clock",      icon: "mdi:speedometer",   unit: "MHz",color: "#FFCC80" },
-      { key: "ram_used",    entity: "sensor.ha_stats_ram_used_percent",   label: "RAM Usage",      icon: "mdi:memory",        unit: "%",  color: "#CE93D8", isBar: true },
-      { key: "ram_free",    entity: "sensor.ha_stats_ram_free",           label: "RAM Free",       icon: "mdi:memory",        unit: "GB", color: "#B39DDB" },
-      { key: "disk_free",   entity: "sensor.ha_stats_disk_free",          label: "Disk Free",      icon: "mdi:harddisk",      unit: "GB", color: "#80DEEA" },
-      { key: "disk_pct",    entity: "sensor.ha_stats_disk_used_percent",  label: "Disk Usage",     icon: "mdi:chart-donut",   unit: "%",  color: "#EF9A9A", isBar: true },
-      { key: "uptime",      entity: "sensor.ha_stats_system_uptime",      label: "Uptime",         icon: "mdi:timer-outline", unit: "h",  color: "#A5D6A7" },
-      { key: "last_boot",   entity: "sensor.ha_stats_last_boot",          label: "Last Boot",      icon: "mdi:restart",       unit: "",   color: "#BCAAA4", isTimestamp: true },
-      { key: "boot_dur",    entity: "sensor.ha_stats_last_boot_duration", label: "Boot Duration",  icon: "mdi:timer-play",    unit: "s",  color: "#FFF59D" },
+      { key: "cpu_used",  fn: "HA Stats CPU Usage",          entity: "sensor.ha_stats_cpu_usage",          label: "CPU Usage",     icon: "mdi:cpu-64-bit",    unit: "%",  color: "#EF9A9A", isBar: true },
+      { key: "cpu_freq",  fn: "HA Stats CPU Frequency",      entity: "sensor.ha_stats_cpu_frequency",      label: "CPU Clock",     icon: "mdi:speedometer",   unit: "MHz",color: "#FFCC80" },
+      { key: "ram_used",  fn: "HA Stats RAM Used Percent",   entity: "sensor.ha_stats_ram_used_percent",   label: "RAM Usage",     icon: "mdi:memory",        unit: "%",  color: "#CE93D8", isBar: true },
+      { key: "ram_free",  fn: "HA Stats RAM Free",           entity: "sensor.ha_stats_ram_free",           label: "RAM Free",      icon: "mdi:memory",        unit: "GB", color: "#B39DDB" },
+      { key: "disk_free", fn: "HA Stats Disk Free",          entity: "sensor.ha_stats_disk_free",          label: "Disk Free",     icon: "mdi:harddisk",      unit: "GB", color: "#80DEEA" },
+      { key: "disk_pct",  fn: "HA Stats Disk Used Percent",  entity: "sensor.ha_stats_disk_used_percent",  label: "Disk Usage",    icon: "mdi:chart-donut",   unit: "%",  color: "#EF9A9A", isBar: true },
+      { key: "uptime",    fn: "HA Stats System Uptime",      entity: "sensor.ha_stats_system_uptime",      label: "Uptime",        icon: "mdi:timer-outline", unit: "h",  color: "#A5D6A7" },
+      { key: "last_boot", fn: "HA Stats Last Boot",          entity: "sensor.ha_stats_last_boot",          label: "Last Boot",     icon: "mdi:restart",       unit: "",   color: "#BCAAA4", isTimestamp: true },
+      { key: "boot_dur",  fn: "HA Stats Last Boot Duration", entity: "sensor.ha_stats_last_boot_duration", label: "Boot Duration", icon: "mdi:timer-play",    unit: "s",  color: "#FFF59D" },
     ],
   },
   {
     label: "Files & Versions",
     stats: [
-      { key: "ha_version",   entity: "sensor.ha_stats_ha_version",           label: "HA Version",        icon: "mdi:home-assistant",     unit: "",  color: "#90CAF9" },
-      { key: "py_version",   entity: "sensor.ha_stats_python_version",        label: "Python Version",    icon: "mdi:language-python",    unit: "",  color: "#FFD54F" },
-      { key: "config_size",  entity: "sensor.ha_stats_config_directory_size", label: "Config Directory",  icon: "mdi:folder-information", unit: "MB",color: "#BCAAA4" },
-      { key: "db_size",      entity: "sensor.ha_stats_recorder_db_size",      label: "Recorder DB",       icon: "mdi:database",           unit: "MB",color: "#80CBC4" },
-      { key: "log_size",     entity: "sensor.ha_stats_log_file_size",         label: "Log File",          icon: "mdi:text-box-outline",   unit: "KB",color: "#B0BEC5" },
+      { key: "ha_version",  fn: "HA Stats HA Version",           entity: "sensor.ha_stats_ha_version",           label: "HA Version",       icon: "mdi:home-assistant",     unit: "",  color: "#90CAF9" },
+      { key: "py_version",  fn: "HA Stats Python Version",        entity: "sensor.ha_stats_python_version",        label: "Python Version",   icon: "mdi:language-python",    unit: "",  color: "#FFD54F" },
+      { key: "config_size", fn: "HA Stats Config Directory Size", entity: "sensor.ha_stats_config_directory_size", label: "Config Directory", icon: "mdi:folder-information", unit: "MB",color: "#BCAAA4" },
+      { key: "db_size",     fn: "HA Stats Recorder DB Size",      entity: "sensor.ha_stats_recorder_db_size",      label: "Recorder DB",      icon: "mdi:database",           unit: "MB",color: "#80CBC4" },
+      { key: "log_size",    fn: "HA Stats Log File Size",         entity: "sensor.ha_stats_log_file_size",         label: "Log File",         icon: "mdi:text-box-outline",   unit: "KB",color: "#B0BEC5" },
     ],
   },
 ];
@@ -110,11 +111,9 @@ function formatValue(stat, state) {
 
 class HAInstanceStatsCard extends HTMLElement {
   set hass(hass) {
-    // Rebuild entity map whenever the number of our entities changes
-    const count = Object.values(hass.entities || {})
-      .filter(e => e.platform === "ha_instance_stats").length;
-    if (count !== this._knownEntityCount) {
-      this._knownEntityCount = count;
+    // Rebuild map until all stats are resolved
+    const total = STAT_GROUPS.reduce((s, g) => s + g.stats.length, 0);
+    if (!this._entityMap || Object.keys(this._entityMap).length < total) {
       this._buildEntityMap(hass);
     }
     this._hass = hass;
@@ -123,23 +122,45 @@ class HAInstanceStatsCard extends HTMLElement {
 
   _buildEntityMap(hass) {
     this._entityMap = {};
-    if (!hass.entities) return;
-    // Collect all entity IDs from our integration
-    const ourEntities = Object.entries(hass.entities)
-      .filter(([, e]) => e.platform === "ha_instance_stats")
-      .map(([id]) => id);
-    if (ourEntities.length === 0) return;
+
+    // Primary: match via friendly_name in hass.states
+    // friendly_name == _attr_name == "HA Stats {description.name}" from sensor.py
+    const fnToId = {};
+    for (const [entityId, state] of Object.entries(hass.states || {})) {
+      const fn = state.attributes?.friendly_name;
+      if (fn) fnToId[fn] = entityId;
+    }
+
     for (const group of STAT_GROUPS) {
       for (const stat of group.stats) {
-        if (ourEntities.includes(stat.entity)) {
+        if (stat.fn && fnToId[stat.fn]) {
+          this._entityMap[stat.key] = fnToId[stat.fn];
+          continue;
+        }
+        // Fallback A: exact hardcoded entity_id present in states
+        if (hass.states?.[stat.entity]) {
           this._entityMap[stat.key] = stat.entity;
-        } else {
-          // Fuzzy match by suffix (e.g. "cpu_usage" in "sensor.ha_instance_stats_cpu_usage")
+          continue;
+        }
+        // Fallback B: platform-based suffix match via hass.entities
+        if (hass.entities) {
           const suffix = stat.entity.replace("sensor.ha_stats_", "");
-          const match = ourEntities.find(id => id.endsWith(suffix));
-          if (match) this._entityMap[stat.key] = match;
+          const match = Object.entries(hass.entities).find(
+            ([id, e]) => e.platform === "ha_instance_stats" && id.endsWith(suffix)
+          );
+          if (match) this._entityMap[stat.key] = match[0];
         }
       }
+    }
+
+    const found = Object.keys(this._entityMap).length;
+    const total = STAT_GROUPS.reduce((s, g) => s + g.stats.length, 0);
+    if (found === 0) {
+      console.warn("[ha-instance-stats-card] No entities found. Is the integration installed and running?");
+    } else if (found < total) {
+      const missing = STAT_GROUPS.flatMap(g => g.stats)
+        .filter(s => !this._entityMap[s.key]).map(s => s.fn || s.entity);
+      console.info(`[ha-instance-stats-card] ${found}/${total} entities resolved. Missing: ${missing.join(", ")}`);
     }
   }
 
@@ -190,6 +211,14 @@ class HAInstanceStatsCard extends HTMLElement {
   _render() {
     if (!this._hass) return;
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+    if (Object.keys(this._entityMap || {}).length === 0) {
+      this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--error-color,#db4437);font-family:var(--primary-font-family,sans-serif)">
+        <b>HA Instance Stats</b>: No sensor entities found.<br>
+        Make sure the integration is installed, configured, and has completed at least one data refresh.<br>
+        Check the browser console for details.
+      </div>`;
+      return;
+    }
 
     const title = this._config?.title || "Home Assistant Statistics";
     const groups = STAT_GROUPS.map((g) => this._renderGroup(g)).join("");
