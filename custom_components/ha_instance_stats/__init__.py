@@ -72,6 +72,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Refresh once more after full startup so entity counts etc. are accurate
+    if not hass.is_running:
+        async def _refresh_on_start(_event=None):
+            await coordinator.async_refresh()
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _refresh_on_start)
+
     return True
 
 

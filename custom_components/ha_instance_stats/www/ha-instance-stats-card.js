@@ -110,8 +110,37 @@ function formatValue(stat, state) {
 
 class HAInstanceStatsCard extends HTMLElement {
   set hass(hass) {
+    // Rebuild entity map whenever the number of our entities changes
+    const count = Object.values(hass.entities || {})
+      .filter(e => e.platform === "ha_instance_stats").length;
+    if (count !== this._knownEntityCount) {
+      this._knownEntityCount = count;
+      this._buildEntityMap(hass);
+    }
     this._hass = hass;
     this._render();
+  }
+
+  _buildEntityMap(hass) {
+    this._entityMap = {};
+    if (!hass.entities) return;
+    // Collect all entity IDs from our integration
+    const ourEntities = Object.entries(hass.entities)
+      .filter(([, e]) => e.platform === "ha_instance_stats")
+      .map(([id]) => id);
+    if (ourEntities.length === 0) return;
+    for (const group of STAT_GROUPS) {
+      for (const stat of group.stats) {
+        if (ourEntities.includes(stat.entity)) {
+          this._entityMap[stat.key] = stat.entity;
+        } else {
+          // Fuzzy match by suffix (e.g. "cpu_usage" in "sensor.ha_instance_stats_cpu_usage")
+          const suffix = stat.entity.replace("sensor.ha_stats_", "");
+          const match = ourEntities.find(id => id.endsWith(suffix));
+          if (match) this._entityMap[stat.key] = match;
+        }
+      }
+    }
   }
 
   setConfig(config) {
@@ -122,7 +151,7 @@ class HAInstanceStatsCard extends HTMLElement {
 
   _renderGroup(group) {
     const items = group.stats.map((stat) => {
-      const stateObj = this._hass.states[stat.entity];
+      const stateObj = this._hass.states[this._entityMap?.[stat.key] ?? stat.entity];
       const rawState = stateObj ? stateObj.state : null;
       const displayValue = formatValue(stat, rawState);
       const unavailable = !rawState || rawState === "unavailable" || rawState === "unknown";
