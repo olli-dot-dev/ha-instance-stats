@@ -4,8 +4,8 @@ from __future__ import annotations
 import logging
 import pathlib
 
-from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
@@ -31,8 +31,36 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     except (ImportError, AttributeError):
         hass.http.register_static_path(_CARD_URL, str(_CARD_PATH), False)
 
-    add_extra_js_url(hass, _CARD_URL)
+    async def _register_card(_event=None):
+        await _async_register_lovelace_resource(hass, _CARD_URL)
+
+    if hass.is_running:
+        await _register_card()
+    else:
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _register_card)
+
     return True
+
+
+async def _async_register_lovelace_resource(hass: HomeAssistant, url: str) -> None:
+    """Register the JS card in the Lovelace resource store."""
+    try:
+        resources = hass.data.get("lovelace", {}).get("resources")
+        if resources is not None:
+            for item in resources.async_items():
+                if item.get("url") == url:
+                    return
+            await resources.async_create_item({"res_type": "module", "url": url})
+            return
+    except Exception as err:
+        _LOGGER.debug("Lovelace resource store unavailable: %s", err)
+
+    # Fallback for YAML-mode Lovelace or older HA versions
+    try:
+        from homeassistant.components.frontend import add_extra_js_url
+        add_extra_js_url(hass, url)
+    except Exception as err:
+        _LOGGER.warning("Could not register Lovelace card resource: %s", err)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

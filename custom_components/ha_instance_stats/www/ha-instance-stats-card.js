@@ -9,50 +9,50 @@ const CARD_VERSION = "2.0.0";
 // Groups with their stats — renders section headers between groups
 const STAT_GROUPS = [
   {
-    label: "Konfiguration",
+    label: "Configuration",
     stats: [
-      { key: "automations",       entity: "sensor.ha_stats_automation_count",        label: "Automationen",         icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
+      { key: "automations",       entity: "sensor.ha_stats_automation_count",        label: "Automations",          icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
       { key: "automations_yaml",  entity: "sensor.ha_stats_automations_yaml_size",    label: "automations.yaml",     icon: "mdi:file-code",        unit: "KB", color: "#81C784" },
-      { key: "automation_failed", entity: "sensor.ha_stats_unavailable_automations",  label: "Fehlgeschl. Autom.",   icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
+      { key: "automation_failed", entity: "sensor.ha_stats_unavailable_automations",  label: "Failed Automations",   icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
       { key: "blueprints",        entity: "sensor.ha_stats_blueprint_count",          label: "Blueprints",           icon: "mdi:source-branch",    unit: "",   color: "#B39DDB" },
-      { key: "scripts",           entity: "sensor.ha_stats_script_count",             label: "Skripte",              icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
-      { key: "scenes",            entity: "sensor.ha_stats_scene_count",              label: "Szenen",               icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
+      { key: "scripts",           entity: "sensor.ha_stats_script_count",             label: "Scripts",              icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
+      { key: "scenes",            entity: "sensor.ha_stats_scene_count",              label: "Scenes",               icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
     ],
   },
   {
-    label: "Geräte & Entities",
+    label: "Devices & Entities",
     stats: [
-      { key: "integrations",  entity: "sensor.ha_stats_active_integrations", label: "Aktive Integrationen", icon: "mdi:puzzle",          unit: "", color: "#FFB74D" },
-      { key: "hacs",          entity: "sensor.ha_stats_hacs_installed",      label: "HACS Erweiterungen",   icon: "mdi:store",           unit: "", color: "#FF8A65" },
-      { key: "entities",      entity: "sensor.ha_stats_entity_count",        label: "Entities",             icon: "mdi:counter",         unit: "", color: "#CE93D8" },
-      { key: "devices",       entity: "sensor.ha_stats_device_count",        label: "Geräte",               icon: "mdi:devices",         unit: "", color: "#F48FB1" },
-      { key: "persons",       entity: "sensor.ha_stats_person_count",        label: "Personen",             icon: "mdi:account-group",   unit: "", color: "#80CBC4" },
-      { key: "persons_home",  entity: "sensor.ha_stats_persons_home",        label: "Personen zuhause",     icon: "mdi:account-check",   unit: "", color: "#A5D6A7" },
-      { key: "zones",         entity: "sensor.ha_stats_zone_count",          label: "Zonen",                icon: "mdi:map-marker-radius",unit: "", color: "#FFF59D" },
+      { key: "integrations",  entity: "sensor.ha_stats_active_integrations", label: "Active Integrations",  icon: "mdi:puzzle",           unit: "", color: "#FFB74D" },
+      { key: "hacs",          entity: "sensor.ha_stats_hacs_installed",      label: "HACS Extensions",      icon: "mdi:store",            unit: "", color: "#FF8A65" },
+      { key: "entities",      entity: "sensor.ha_stats_entity_count",        label: "Entities",             icon: "mdi:counter",          unit: "", color: "#CE93D8" },
+      { key: "devices",       entity: "sensor.ha_stats_device_count",        label: "Devices",              icon: "mdi:devices",          unit: "", color: "#F48FB1" },
+      { key: "persons",       entity: "sensor.ha_stats_person_count",        label: "Persons",              icon: "mdi:account-group",    unit: "", color: "#80CBC4" },
+      { key: "persons_home",  entity: "sensor.ha_stats_persons_home",        label: "Persons Home",         icon: "mdi:account-check",    unit: "", color: "#A5D6A7" },
+      { key: "zones",         entity: "sensor.ha_stats_zone_count",          label: "Zones",                icon: "mdi:map-marker-radius", unit: "", color: "#FFF59D" },
     ],
   },
   {
     label: "System",
     stats: [
-      { key: "cpu_used",    entity: "sensor.ha_stats_cpu_usage",     label: "CPU Auslastung", icon: "mdi:cpu-64-bit",   unit: "%",  color: "#EF9A9A", isBar: true },
-      { key: "cpu_freq",    entity: "sensor.ha_stats_cpu_frequency", label: "CPU Takt",       icon: "mdi:speedometer",  unit: "MHz",color: "#FFCC80" },
-      { key: "ram_used",    entity: "sensor.ha_stats_ram_used_percent", label: "RAM Auslastung", icon: "mdi:memory",    unit: "%",  color: "#CE93D8", isBar: true },
-      { key: "ram_free",    entity: "sensor.ha_stats_ram_free",      label: "RAM Frei",       icon: "mdi:memory",       unit: "GB", color: "#B39DDB" },
-      { key: "disk_free",   entity: "sensor.ha_stats_disk_free",     label: "Disk Frei",      icon: "mdi:harddisk",     unit: "GB", color: "#80DEEA" },
-      { key: "disk_pct",    entity: "sensor.ha_stats_disk_used_percent", label: "Disk Auslastung", icon: "mdi:chart-donut", unit: "%", color: "#EF9A9A", isBar: true },
-      { key: "uptime",      entity: "sensor.ha_stats_system_uptime", label: "Uptime",         icon: "mdi:timer-outline",unit: "h",  color: "#A5D6A7" },
-      { key: "last_boot",   entity: "sensor.ha_stats_last_boot",     label: "Letzter Start",  icon: "mdi:restart",      unit: "",   color: "#BCAAA4", isTimestamp: true },
-      { key: "boot_dur",    entity: "sensor.ha_stats_last_boot_duration", label: "Startdauer",icon: "mdi:timer-play",   unit: "s",  color: "#FFF59D" },
+      { key: "cpu_used",    entity: "sensor.ha_stats_cpu_usage",          label: "CPU Usage",      icon: "mdi:cpu-64-bit",    unit: "%",  color: "#EF9A9A", isBar: true },
+      { key: "cpu_freq",    entity: "sensor.ha_stats_cpu_frequency",      label: "CPU Clock",      icon: "mdi:speedometer",   unit: "MHz",color: "#FFCC80" },
+      { key: "ram_used",    entity: "sensor.ha_stats_ram_used_percent",   label: "RAM Usage",      icon: "mdi:memory",        unit: "%",  color: "#CE93D8", isBar: true },
+      { key: "ram_free",    entity: "sensor.ha_stats_ram_free",           label: "RAM Free",       icon: "mdi:memory",        unit: "GB", color: "#B39DDB" },
+      { key: "disk_free",   entity: "sensor.ha_stats_disk_free",          label: "Disk Free",      icon: "mdi:harddisk",      unit: "GB", color: "#80DEEA" },
+      { key: "disk_pct",    entity: "sensor.ha_stats_disk_used_percent",  label: "Disk Usage",     icon: "mdi:chart-donut",   unit: "%",  color: "#EF9A9A", isBar: true },
+      { key: "uptime",      entity: "sensor.ha_stats_system_uptime",      label: "Uptime",         icon: "mdi:timer-outline", unit: "h",  color: "#A5D6A7" },
+      { key: "last_boot",   entity: "sensor.ha_stats_last_boot",          label: "Last Boot",      icon: "mdi:restart",       unit: "",   color: "#BCAAA4", isTimestamp: true },
+      { key: "boot_dur",    entity: "sensor.ha_stats_last_boot_duration", label: "Boot Duration",  icon: "mdi:timer-play",    unit: "s",  color: "#FFF59D" },
     ],
   },
   {
-    label: "Dateien & Versionen",
+    label: "Files & Versions",
     stats: [
-      { key: "ha_version",   entity: "sensor.ha_stats_ha_version",           label: "HA Version",         icon: "mdi:home-assistant",     unit: "", color: "#90CAF9" },
-      { key: "py_version",   entity: "sensor.ha_stats_python_version",        label: "Python Version",     icon: "mdi:language-python",    unit: "", color: "#FFD54F" },
-      { key: "config_size",  entity: "sensor.ha_stats_config_directory_size", label: "Config-Verzeichnis", icon: "mdi:folder-information", unit: "MB",color: "#BCAAA4" },
-      { key: "db_size",      entity: "sensor.ha_stats_recorder_db_size",      label: "Recorder-Datenbank", icon: "mdi:database",           unit: "MB",color: "#80CBC4" },
-      { key: "log_size",     entity: "sensor.ha_stats_log_file_size",         label: "Log-Datei",          icon: "mdi:text-box-outline",   unit: "KB",color: "#B0BEC5" },
+      { key: "ha_version",   entity: "sensor.ha_stats_ha_version",           label: "HA Version",        icon: "mdi:home-assistant",     unit: "",  color: "#90CAF9" },
+      { key: "py_version",   entity: "sensor.ha_stats_python_version",        label: "Python Version",    icon: "mdi:language-python",    unit: "",  color: "#FFD54F" },
+      { key: "config_size",  entity: "sensor.ha_stats_config_directory_size", label: "Config Directory",  icon: "mdi:folder-information", unit: "MB",color: "#BCAAA4" },
+      { key: "db_size",      entity: "sensor.ha_stats_recorder_db_size",      label: "Recorder DB",       icon: "mdi:database",           unit: "MB",color: "#80CBC4" },
+      { key: "log_size",     entity: "sensor.ha_stats_log_file_size",         label: "Log File",          icon: "mdi:text-box-outline",   unit: "KB",color: "#B0BEC5" },
     ],
   },
 ];
@@ -96,7 +96,7 @@ function formatTimestamp(isoString) {
   if (!isoString || isoString === "unavailable" || isoString === "unknown") return "—";
   try {
     const d = new Date(isoString);
-    return d.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleString(undefined, { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
   } catch { return isoString; }
 }
 
@@ -135,7 +135,7 @@ class HAInstanceStatsCard extends HTMLElement {
         extraHtml = `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${barColor}"></div></div>`;
       }
 
-      const itemColor = unavailable ? "#555" : (isAlertActive ? "#EF5350" : stat.color);
+      const itemColor = unavailable ? "var(--secondary-text-color, #757575)" : (isAlertActive ? "#EF5350" : stat.color);
       const itemBorder = isAlertActive ? "border:1px solid rgba(239,83,80,0.4);background:rgba(239,83,80,0.07);" : "";
 
       return `
@@ -162,58 +162,58 @@ class HAInstanceStatsCard extends HTMLElement {
     if (!this._hass) return;
     if (!this.shadowRoot) this.attachShadow({ mode: "open" });
 
-    const title = this._config?.title || "Home Assistant Statistiken";
+    const title = this._config?.title || "Home Assistant Statistics";
     const groups = STAT_GROUPS.map((g) => this._renderGroup(g)).join("");
 
     this.shadowRoot.innerHTML = `
       <style>
         :host { display: block; font-family: var(--primary-font-family, 'Roboto', sans-serif); }
         .card {
-          background: var(--ha-card-background, #1c1c2e);
+          background: var(--ha-card-background, var(--card-background-color, #fff));
           border-radius: 16px;
           padding: 20px;
-          box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-          border: 1px solid rgba(255,255,255,0.06);
+          box-shadow: var(--ha-card-box-shadow, 0 2px 8px rgba(0,0,0,0.1));
+          border: 1px solid var(--ha-card-border-color, var(--divider-color, #e0e0e0));
         }
         .card-header {
           display: flex; align-items: center; gap: 10px;
           margin-bottom: 18px; padding-bottom: 14px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
+          border-bottom: 1px solid var(--divider-color, rgba(0,0,0,0.12));
         }
-        .card-title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color, #e0e0e0); letter-spacing: 0.02em; }
-        .card-subtitle { font-size: 0.7rem; color: var(--secondary-text-color, #888); margin-top: 2px; }
+        .card-title { font-size: 1.05rem; font-weight: 600; color: var(--primary-text-color, #212121); letter-spacing: 0.02em; }
+        .card-subtitle { font-size: 0.7rem; color: var(--secondary-text-color, #757575); margin-top: 2px; }
         .group { margin-bottom: 18px; }
         .group:last-child { margin-bottom: 0; }
         .group-label {
           font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--secondary-text-color, #666);
+          text-transform: uppercase; color: var(--secondary-text-color, #757575);
           margin-bottom: 8px; padding-left: 2px;
         }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); gap: 8px; }
         .stat-item {
-          background: rgba(255,255,255,0.04);
+          background: var(--secondary-background-color, rgba(0,0,0,0.04));
           border-radius: 10px; padding: 11px 13px;
           display: flex; align-items: flex-start; gap: 10px;
-          border: 1px solid rgba(255,255,255,0.05);
+          border: 1px solid var(--divider-color, rgba(0,0,0,0.08));
           transition: background 0.15s;
         }
-        .stat-item:hover { background: rgba(255,255,255,0.07); }
+        .stat-item:hover { background: var(--primary-background-color, rgba(0,0,0,0.08)); }
         .stat-item.unavailable { opacity: 0.4; }
         .stat-icon { margin-top: 2px; }
         .stat-content { flex: 1; min-width: 0; }
         .stat-label {
-          font-size: 0.68rem; color: var(--secondary-text-color, #888);
+          font-size: 0.68rem; color: var(--secondary-text-color, #757575);
           text-transform: uppercase; letter-spacing: 0.05em;
           margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .stat-value { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; line-height: 1.2; }
         .stat-unit { font-size: 0.62rem; font-weight: 400; margin-left: 2px; opacity: 0.7; vertical-align: middle; }
-        .bar-track { margin-top: 6px; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.1); overflow: hidden; }
+        .bar-track { margin-top: 6px; height: 3px; border-radius: 2px; background: var(--divider-color, rgba(0,0,0,0.1)); overflow: hidden; }
         .bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
         .footer {
           margin-top: 14px; padding-top: 10px;
-          border-top: 1px solid rgba(255,255,255,0.06);
-          font-size: 0.67rem; color: var(--disabled-text-color, #555); text-align: right;
+          border-top: 1px solid var(--divider-color, rgba(0,0,0,0.08));
+          font-size: 0.67rem; color: var(--disabled-text-color, #9e9e9e); text-align: right;
         }
       </style>
       <div class="card">
@@ -221,7 +221,7 @@ class HAInstanceStatsCard extends HTMLElement {
           ${renderIcon("mdi:home-assistant", "#90CAF9")}
           <div>
             <div class="card-title">${title}</div>
-            <div class="card-subtitle">Instanz-Statistiken · alle 5 Min aktualisiert</div>
+            <div class="card-subtitle">Instance Statistics · updated every 5 min</div>
           </div>
         </div>
         ${groups}
@@ -236,7 +236,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: "ha-instance-stats-card",
   name: "HA Instance Stats",
-  description: "Zeigt Statistiken deiner Home Assistant Instanz an – gruppiert nach Kategorie.",
+  description: "Displays your Home Assistant instance statistics grouped by category.",
   preview: false,
   documentationURL: "https://github.com/olli-dot-dev/ha-instance-stats",
 });
