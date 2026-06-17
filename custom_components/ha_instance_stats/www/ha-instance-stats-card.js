@@ -166,6 +166,8 @@ class HAInstanceStatsCard extends HTMLElement {
 
   setConfig(config) {
     this._config = config || {};
+    // Trigger initial render attempt so HA does not show a blank element
+    if (this._hass) this._render();
   }
 
   getCardSize() { return 10; }
@@ -209,16 +211,16 @@ class HAInstanceStatsCard extends HTMLElement {
   }
 
   _render() {
-    if (!this._hass) return;
-    if (!this.shadowRoot) this.attachShadow({ mode: "open" });
-    if (Object.keys(this._entityMap || {}).length === 0) {
-      this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--error-color,#db4437);font-family:var(--primary-font-family,sans-serif)">
-        <b>HA Instance Stats</b>: No sensor entities found.<br>
-        Make sure the integration is installed, configured, and has completed at least one data refresh.<br>
-        Check the browser console for details.
-      </div>`;
-      return;
-    }
+    if (!this._hass || !this._config) return;
+    try {
+      if (!this.shadowRoot) this.attachShadow({ mode: "open" });
+      if (Object.keys(this._entityMap || {}).length === 0) {
+        this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--warning-color,#ff9800);font-family:var(--primary-font-family,sans-serif)">
+          <b>HA Instance Stats</b>: Waiting for sensor data&hellip;<br>
+          <small>If this persists after a minute, check the browser console for details.</small>
+        </div>`;
+        return;
+      }
 
     const title = this._config?.title || "Home Assistant Statistics";
     const groups = STAT_GROUPS.map((g) => this._renderGroup(g)).join("");
@@ -285,10 +287,15 @@ class HAInstanceStatsCard extends HTMLElement {
         ${groups}
         <div class="footer">HA Instance Stats v${CARD_VERSION}</div>
       </div>`;
+    } catch (e) {
+      console.error("[ha-instance-stats-card] render error:", e);
+    }
   }
 }
 
-customElements.define("ha-instance-stats-card", HAInstanceStatsCard);
+if (!customElements.get("ha-instance-stats-card")) {
+  customElements.define("ha-instance-stats-card", HAInstanceStatsCard);
+}
 
 window.customCards = window.customCards || [];
 window.customCards.push({
