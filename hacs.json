@@ -1,8 +1,5 @@
 {
   "name": "HA Instance Stats",
-  "content_in_root": false,
   "render_readme": true,
-  "filename": "ha-instance-stats-card.js",
-  "country": [],
   "homeassistant": "2023.1.0"
 }
