@@ -4,7 +4,7 @@
  * Version: 2.0.0
  */
 
-const CARD_VERSION = "2.0.0";
+const CARD_VERSION = "2.1.0";
 
 // fn = friendly_name HA assigns (= "HA Stats " + description.name from sensor.py)
 // Used for robust entity discovery via hass.states regardless of assigned entity_id
@@ -12,12 +12,14 @@ const STAT_GROUPS = [
   {
     label: "Configuration",
     stats: [
-      { key: "automations",       fn: "HA Stats Automation Count",        entity: "sensor.ha_stats_automation_count",        label: "Automations",         icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
-      { key: "automations_yaml",  fn: "HA Stats Automations YAML Size",   entity: "sensor.ha_stats_automations_yaml_size",    label: "automations.yaml",    icon: "mdi:file-code",        unit: "KB", color: "#81C784" },
-      { key: "automation_failed", fn: "HA Stats Unavailable Automations", entity: "sensor.ha_stats_unavailable_automations",  label: "Failed Automations",  icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
-      { key: "blueprints",        fn: "HA Stats Blueprint Count",         entity: "sensor.ha_stats_blueprint_count",          label: "Blueprints",          icon: "mdi:source-branch",    unit: "",   color: "#B39DDB" },
-      { key: "scripts",           fn: "HA Stats Script Count",            entity: "sensor.ha_stats_script_count",             label: "Scripts",             icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
-      { key: "scenes",            fn: "HA Stats Scene Count",             entity: "sensor.ha_stats_scene_count",              label: "Scenes",              icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
+      { key: "automations",            fn: "HA Stats Automation Count",        entity: "sensor.ha_stats_automation_count",         label: "Automations",           icon: "mdi:robot",            unit: "",   color: "#4FC3F7" },
+      { key: "automations_yaml",       fn: "HA Stats Automations YAML Size",   entity: "sensor.ha_stats_automations_yaml_size",     label: "automations.yaml",      icon: "mdi:file-code",        unit: "KB", color: "#81C784" },
+      { key: "automations_yaml_lines", fn: "HA Stats Automations YAML Lines",  entity: "sensor.ha_stats_automations_yaml_lines",    label: "Automation Lines",      icon: "mdi:code-braces",      unit: "",   color: "#A5D6A7" },
+      { key: "automation_failed",      fn: "HA Stats Unavailable Automations", entity: "sensor.ha_stats_unavailable_automations",   label: "Failed Automations",    icon: "mdi:robot-dead",       unit: "",   color: "#EF9A9A", isAlert: true },
+      { key: "blueprints",             fn: "HA Stats Blueprint Count",         entity: "sensor.ha_stats_blueprint_count",           label: "Blueprints",            icon: "mdi:source-branch",    unit: "",   color: "#B39DDB" },
+      { key: "scripts",                fn: "HA Stats Script Count",            entity: "sensor.ha_stats_script_count",              label: "Scripts",               icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
+      { key: "scripts_yaml_lines",     fn: "HA Stats Scripts YAML Lines",      entity: "sensor.ha_stats_scripts_yaml_lines",        label: "Script Lines",          icon: "mdi:code-braces",      unit: "",   color: "#80DEEA" },
+      { key: "scenes",                 fn: "HA Stats Scene Count",             entity: "sensor.ha_stats_scene_count",               label: "Scenes",                icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
     ],
   },
   {
@@ -86,6 +88,7 @@ const MDI_PATHS = {
   "mdi:folder-information":"M13 9h1.5v3H16v1.5h-3V9M13 5v1.5h5v11H6V5h7M11 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-5-5h-4m-1 6h3v.5H10V9m1 3H9v-.5h2V12m-1 2h3v.5h-3V14z",
   "mdi:database":         "M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.59 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4m0 2c3.87 0 6 1.5 6 2s-2.13 2-6 2-6-1.5-6-2 2.13-2 6-2m6 12c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17m0-4.5c0 .5-2.13 2-6 2s-6-1.5-6-2v-2.23C7.61 11.05 9.72 11.5 12 11.5s4.39-.45 6-1.23V12.5z",
   "mdi:text-box-outline": "M5 3c-1.11 0-2 .89-2 2v14c0 1.11.89 2 2 2h14c1.11 0 2-.89 2-2V5c0-1.11-.89-2-2-2H5m0 2h14v14H5V5m2 3v2h10V8H7m0 4v2h10v-2H7m0 4v2h7v-2H7z",
+  "mdi:code-braces":      "M8 3a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h2v-2H8v-5a2 2 0 0 0-2-2 2 2 0 0 0 2-2V5h2V3H8m6 0a2 2 0 0 1 2 2v4a2 2 0 0 1 2 2 2 2 0 0 1-2 2v4a2 2 0 0 1-2 2h-2v-2h2v-5a2 2 0 0 1 2-2 2 2 0 0 1-2-2V5h-2V3h2z",
 };
 
 function renderIcon(iconKey, color) {

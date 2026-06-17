@@ -8,6 +8,19 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
+
+def _count_yaml_lines(path: Path) -> int | None:
+    """Count non-empty, non-comment lines in a YAML file."""
+    if not path.exists():
+        return None
+    count = 0
+    with open(path, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                count += 1
+    return count
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -132,6 +145,16 @@ class HAInstanceStatsCoordinator(DataUpdateCoordinator):
         except Exception:
             data["automation_yaml_size_bytes"] = None
             data["automation_yaml_size_kb"] = None
+
+        try:
+            data["automation_yaml_lines"] = _count_yaml_lines(config_path / "automations.yaml")
+        except Exception:
+            data["automation_yaml_lines"] = None
+
+        try:
+            data["script_yaml_lines"] = _count_yaml_lines(config_path / "scripts.yaml")
+        except Exception:
+            data["script_yaml_lines"] = None
 
         try:
             disk = shutil.disk_usage(config_dir)

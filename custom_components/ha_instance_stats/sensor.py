@@ -49,6 +49,20 @@ SENSOR_DESCRIPTIONS: list[HAStatsSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     HAStatsSensorDescription(
+        key="automation_yaml_lines",
+        data_key="automation_yaml_lines",
+        name="Automations YAML Lines",
+        icon="mdi:code-braces",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
+        key="script_yaml_lines",
+        data_key="script_yaml_lines",
+        name="Scripts YAML Lines",
+        icon="mdi:code-braces",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
         key="integration_count",
         data_key="integration_count",
         name="Active Integrations",
