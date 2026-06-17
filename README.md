@@ -64,13 +64,13 @@ Eine HACS-Erweiterung für Home Assistant, die dir detaillierte Statistiken zu d
 ### Option A: Via HACS (empfohlen)
 
 1. Öffne HACS → **Integrationen** → Menü (⋮) → **Benutzerdefiniertes Repository hinzufügen**
-2. URL: `https://github.com/yourusername/ha-instance-stats`
+2. URL: `https://github.com/olli-dot-dev/ha-instance-stats`
 3. Kategorie: **Integration**
 4. Klicke **Hinzufügen**, dann suche nach "HA Instance Stats" und installiere es.
 
 Für die Lovelace-Karte:
 1. HACS → **Frontend** → **Benutzerdefiniertes Repository hinzufügen**
-2. URL: `https://github.com/yourusername/ha-instance-stats`
+2. URL: `https://github.com/olli-dot-dev/ha-instance-stats`
 3. Kategorie: **Lovelace**
 4. Installiere "HA Instance Stats Card"
 

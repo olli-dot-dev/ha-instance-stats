@@ -238,7 +238,7 @@ window.customCards.push({
   name: "HA Instance Stats",
   description: "Zeigt Statistiken deiner Home Assistant Instanz an – gruppiert nach Kategorie.",
   preview: false,
-  documentationURL: "https://github.com/yourusername/ha-instance-stats",
+  documentationURL: "https://github.com/olli-dot-dev/ha-instance-stats",
 });
 
 console.info(
