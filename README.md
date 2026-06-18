@@ -13,9 +13,11 @@ A HACS integration for Home Assistant that exposes detailed statistics about you
 |--------|-------------|
 | `sensor.ha_stats_automation_count` | Number of automations |
 | `sensor.ha_stats_automations_yaml_size` | Size of `automations.yaml` in KB |
+| `sensor.ha_stats_automations_yaml_lines` | Line count of `automations.yaml` |
 | `sensor.ha_stats_unavailable_automations` | Number of failed/unavailable automations |
 | `sensor.ha_stats_blueprint_count` | Number of installed blueprints |
 | `sensor.ha_stats_script_count` | Number of scripts |
+| `sensor.ha_stats_scripts_yaml_lines` | Line count of `scripts.yaml` |
 | `sensor.ha_stats_scene_count` | Number of scenes |
 
 ### Devices & Entities
@@ -88,12 +90,53 @@ The Lovelace card is **automatically registered** — no manual resource configu
 
 ## 🃏 Using the Card
 
-Add the card to your dashboard via the UI editor or YAML:
+Add the card via the dashboard UI editor (search for **HA Instance Stats**) or manually via YAML:
 
 ```yaml
 type: custom:ha-instance-stats-card
-title: My HA Instance  # Optional, default: "Home Assistant Statistics"
+title: My HA Instance        # Optional, default: "Home Assistant Statistics"
+hidden_groups:               # Optional: hide entire groups
+  - System
+hidden_stats:                # Optional: hide individual entries by key
+  - automations_yaml
+  - automations_yaml_lines
 ```
+
+The visual editor (accessible via the card's pencil icon) lets you toggle groups and individual entries without editing YAML.
+
+**Available `hidden_stats` keys:**
+
+| Key | Label |
+|-----|-------|
+| `automations` | Automations |
+| `automations_yaml` | automations.yaml |
+| `automations_yaml_lines` | Automation Lines |
+| `automation_failed` | Failed Automations |
+| `blueprints` | Blueprints |
+| `scripts` | Scripts |
+| `scripts_yaml_lines` | Script Lines |
+| `scenes` | Scenes |
+| `integrations` | Active Integrations |
+| `hacs` | HACS Extensions |
+| `entities` | Entities |
+| `devices` | Devices |
+| `persons` | Persons |
+| `persons_home` | Persons Home |
+| `zones` | Zones |
+| `cpu_used` | CPU Usage |
+| `cpu_freq` | CPU Clock |
+| `ram_used` | RAM Usage |
+| `ram_free` | RAM Free |
+| `disk_free` | Disk Free |
+| `disk_pct` | Disk Usage |
+| `uptime` | Uptime |
+| `last_boot` | Last Boot |
+| `boot_dur` | Boot Duration |
+| `ha_version` | HA Version |
+| `py_version` | Python Version |
+| `config_size` | Config Directory |
+| `db_size` | Recorder DB |
+| `log_size` | Log File |
 
 ---
 

@@ -167,6 +167,14 @@ class HAInstanceStatsCard extends HTMLElement {
     }
   }
 
+  static getStubConfig() {
+    return { title: "" };
+  }
+
+  static getConfigElement() {
+    return document.createElement("ha-instance-stats-card-editor");
+  }
+
   setConfig(config) {
     this._config = config || {};
     // Trigger initial render attempt so HA does not show a blank element
@@ -175,8 +183,8 @@ class HAInstanceStatsCard extends HTMLElement {
 
   getCardSize() { return 10; }
 
-  _renderGroup(group) {
-    const items = group.stats.map((stat) => {
+  _renderGroup(group, hiddenStats = []) {
+    const items = group.stats.filter(s => !hiddenStats.includes(s.key)).map((stat) => {
       const stateObj = this._hass.states[this._entityMap?.[stat.key] ?? stat.entity];
       const rawState = stateObj ? stateObj.state : null;
       const displayValue = formatValue(stat, rawState);
@@ -226,7 +234,12 @@ class HAInstanceStatsCard extends HTMLElement {
       }
 
     const title = this._config?.title || "Home Assistant Statistics";
-    const groups = STAT_GROUPS.map((g) => this._renderGroup(g)).join("");
+    const hiddenGroups = this._config?.hidden_groups || [];
+    const hiddenStats = this._config?.hidden_stats || [];
+    const groups = STAT_GROUPS
+      .filter(g => !hiddenGroups.includes(g.label))
+      .map(g => this._renderGroup(g, hiddenStats))
+      .join("");
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -296,8 +309,128 @@ class HAInstanceStatsCard extends HTMLElement {
   }
 }
 
+class HAInstanceStatsCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  setConfig(config) {
+    this._config = config || {};
+    this._render();
+  }
+
+  _dispatch(config) {
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config },
+      bubbles: true,
+      composed: true,
+    }));
+  }
+
+  _render() {
+    if (!this.shadowRoot) return;
+    const cfg = this._config || {};
+    const hiddenGroups = cfg.hidden_groups || [];
+    const hiddenStats = cfg.hidden_stats || [];
+
+    const groupsHtml = STAT_GROUPS.map(g => {
+      const groupHidden = hiddenGroups.includes(g.label);
+      const statsHtml = g.stats.map(s => `
+        <label class="stat-row">
+          <input type="checkbox" data-type="stat" data-key="${s.key}"${hiddenStats.includes(s.key) ? "" : " checked"}>
+          <span>${s.label}</span>
+        </label>`).join("");
+      return `
+        <div class="group-block">
+          <label class="group-row">
+            <input type="checkbox" data-type="group" data-label="${g.label}"${groupHidden ? "" : " checked"}>
+            <strong>${g.label}</strong>
+          </label>
+          <div class="stat-list${groupHidden ? " hidden" : ""}">${statsHtml}</div>
+        </div>`;
+    }).join("");
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host { display: block; font-family: var(--primary-font-family, sans-serif); }
+        .field { margin-bottom: 16px; }
+        .field-label { font-size: 0.8rem; color: var(--secondary-text-color); margin-bottom: 4px; }
+        .text-input {
+          width: 100%; box-sizing: border-box;
+          background: var(--secondary-background-color, #f5f5f5);
+          border: 1px solid var(--divider-color, #e0e0e0);
+          border-radius: 8px; padding: 8px 12px;
+          color: var(--primary-text-color);
+          font-size: 0.95rem; font-family: inherit;
+        }
+        .text-input:focus { outline: none; border-color: var(--primary-color); }
+        .section-title {
+          font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.1em; color: var(--secondary-text-color);
+          margin: 20px 0 10px;
+        }
+        .group-block { margin-bottom: 4px; }
+        .group-row {
+          display: flex; align-items: center; gap: 10px;
+          padding: 6px 4px; cursor: pointer; user-select: none;
+          font-size: 0.9rem;
+        }
+        .stat-list { padding-left: 28px; }
+        .stat-list.hidden { display: none; }
+        .stat-row {
+          display: flex; align-items: center; gap: 8px;
+          padding: 4px 4px; cursor: pointer; user-select: none;
+          font-size: 0.85rem; color: var(--secondary-text-color);
+        }
+        input[type="checkbox"] {
+          width: 16px; height: 16px; flex-shrink: 0;
+          cursor: pointer; accent-color: var(--primary-color, #03a9f4);
+        }
+      </style>
+      <div>
+        <div class="field">
+          <div class="field-label">Title</div>
+          <input class="text-input" id="title-input" type="text" placeholder="Home Assistant Statistics">
+        </div>
+        <div class="section-title">Groups &amp; Entities</div>
+        ${groupsHtml}
+      </div>`;
+
+    this.shadowRoot.getElementById("title-input").value = cfg.title || "";
+
+    this.shadowRoot.getElementById("title-input").addEventListener("change", e => {
+      this._dispatch({ ...this._config, title: e.target.value });
+    });
+
+    this.shadowRoot.addEventListener("change", e => {
+      const el = e.target;
+      if (el.id === "title-input") return;
+      if (el.dataset.type === "group") {
+        const label = el.dataset.label;
+        let hidden = [...(this._config.hidden_groups || [])];
+        hidden = el.checked
+          ? hidden.filter(l => l !== label)
+          : [...hidden.filter(l => l !== label), label];
+        this._dispatch({ ...this._config, hidden_groups: hidden });
+      } else if (el.dataset.type === "stat") {
+        const key = el.dataset.key;
+        let hidden = [...(this._config.hidden_stats || [])];
+        hidden = el.checked
+          ? hidden.filter(k => k !== key)
+          : [...hidden.filter(k => k !== key), key];
+        this._dispatch({ ...this._config, hidden_stats: hidden });
+      }
+    });
+  }
+}
+
 if (!customElements.get("ha-instance-stats-card")) {
   customElements.define("ha-instance-stats-card", HAInstanceStatsCard);
+}
+
+if (!customElements.get("ha-instance-stats-card-editor")) {
+  customElements.define("ha-instance-stats-card-editor", HAInstanceStatsCardEditor);
 }
 
 window.customCards = window.customCards || [];
