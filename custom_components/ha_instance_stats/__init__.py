@@ -51,65 +51,80 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+def _get_lovelace_resources(hass: HomeAssistant):
+    """Return the Lovelace resource store, compatible with old (dict) and new (object) HA layouts."""
+    lovelace = hass.data.get("lovelace")
+    if lovelace is None:
+        return None
+    if isinstance(lovelace, dict):
+        return lovelace.get("resources")
+    return getattr(lovelace, "resources", None)
+
+
 async def _async_register_lovelace_resource(
     hass: HomeAssistant, url: str, base_url: str
 ) -> None:
     """Register the JS card so HA loads it on every frontend page.
 
-    Two complementary mechanisms are used:
-
-    1. add_extra_js_url – session-based, called on every HA start.  Most
-       reliable; works in both YAML-mode and UI-mode Lovelace.
-
-    2. Lovelace resource store – persistent across restarts, visible in
-       Settings → Dashboards → Resources.  Tried up to 3 times (2 s apart)
-       in case the store is not yet initialised when HA_STARTED fires.
-       New entry is created BEFORE old ones are removed so the card is
-       never left without a registered resource if creation fails.
+    Tries three mechanisms in order, logging the outcome of each at a
+    level that is visible in HA's default log configuration (WARNING/INFO).
     """
-    # Primary: inject into every HA frontend page load (session-scoped)
+    # 1. Frontend module injection (session-scoped, works in all Lovelace modes)
     try:
-        from homeassistant.components.frontend import add_extra_js_url
-        add_extra_js_url(hass, url)
-        _LOGGER.debug("JS module injected via add_extra_js_url: %s", url)
+        from homeassistant.components import frontend as _frontend
+        for _fn_name in ("add_extra_js_url", "add_extra_module_url"):
+            _fn = getattr(_frontend, _fn_name, None)
+            if callable(_fn):
+                _fn(hass, url)
+                _LOGGER.info("JS module injected via frontend.%s: %s", _fn_name, url)
+                break
+        else:
+            _LOGGER.warning(
+                "Neither add_extra_js_url nor add_extra_module_url found in "
+                "homeassistant.components.frontend — skipping session injection."
+            )
     except Exception as err:
-        _LOGGER.debug("add_extra_js_url unavailable: %s", err)
+        _LOGGER.warning("Frontend module injection failed: %s", err)
 
-    # Secondary: persist in the Lovelace resource store
+    # 2. Lovelace resource store (persistent, visible in Settings → Dashboards → Resources)
     for attempt in range(3):
         try:
-            resources = hass.data.get("lovelace", {}).get("resources")
+            resources = _get_lovelace_resources(hass)
             if resources is None:
+                _LOGGER.debug(
+                    "Lovelace resource store not yet available (attempt %d/3)", attempt + 1
+                )
                 if attempt < 2:
                     await asyncio.sleep(2)
                 continue
+
             to_remove = []
             for item in resources.async_items():
                 item_url = item.get("url", "")
                 if item_url == url:
-                    return  # Correct version already registered
+                    _LOGGER.debug("Lovelace resource already registered: %s", url)
+                    return
                 if item_url.startswith(base_url):
                     item_id = item.get("id")
                     if item_id:
                         to_remove.append(item_id)
-            # Create new entry first — then remove stale ones so the card is
-            # never left unregistered if creation were to raise an exception.
+
             await resources.async_create_item({"res_type": "module", "url": url})
-            _LOGGER.debug("Lovelace resource registered: %s", url)
+            _LOGGER.info("Lovelace resource registered: %s", url)
             for item_id in to_remove:
                 await resources.async_delete_item(item_id)
             return
         except Exception as err:
-            _LOGGER.debug(
-                "Lovelace resource store attempt %d/3 failed: %s",
-                attempt + 1, err,
+            _LOGGER.warning(
+                "Lovelace resource store attempt %d/3 failed: %s", attempt + 1, err
             )
         if attempt < 2:
             await asyncio.sleep(2)
 
-    _LOGGER.info(
-        "Could not add %s to Lovelace resource store after 3 attempts — "
-        "card is available via add_extra_js_url and will load on next restart.",
+    _LOGGER.warning(
+        "Automatic Lovelace resource registration failed. "
+        "Add the card resource manually: "
+        "Settings → Dashboards → Resources → + → URL: %s | Type: JavaScript Module",
         url,
     )
 
