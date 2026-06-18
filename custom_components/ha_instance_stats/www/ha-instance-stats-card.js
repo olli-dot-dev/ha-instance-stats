@@ -313,7 +313,11 @@ class HAInstanceStatsCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    // Single listener on the persistent shadowRoot — survives innerHTML replacements.
+    this.shadowRoot.addEventListener("change", e => this._handleChange(e));
   }
+
+  set hass(hass) { this._hass = hass; }
 
   setConfig(config) {
     this._config = config || {};
@@ -326,6 +330,27 @@ class HAInstanceStatsCardEditor extends HTMLElement {
       bubbles: true,
       composed: true,
     }));
+  }
+
+  _handleChange(e) {
+    const el = e.target;
+    if (el.id === "title-input") {
+      this._dispatch({ ...this._config, title: el.value });
+    } else if (el.dataset.type === "group") {
+      const label = el.dataset.label;
+      let hidden = [...(this._config.hidden_groups || [])];
+      hidden = el.checked
+        ? hidden.filter(l => l !== label)
+        : [...hidden.filter(l => l !== label), label];
+      this._dispatch({ ...this._config, hidden_groups: hidden });
+    } else if (el.dataset.type === "stat") {
+      const key = el.dataset.key;
+      let hidden = [...(this._config.hidden_stats || [])];
+      hidden = el.checked
+        ? hidden.filter(k => k !== key)
+        : [...hidden.filter(k => k !== key), key];
+      this._dispatch({ ...this._config, hidden_stats: hidden });
+    }
   }
 
   _render() {
@@ -397,31 +422,8 @@ class HAInstanceStatsCardEditor extends HTMLElement {
         ${groupsHtml}
       </div>`;
 
+    // Set value imperatively to avoid HTML-encoding the title string.
     this.shadowRoot.getElementById("title-input").value = cfg.title || "";
-
-    this.shadowRoot.getElementById("title-input").addEventListener("change", e => {
-      this._dispatch({ ...this._config, title: e.target.value });
-    });
-
-    this.shadowRoot.addEventListener("change", e => {
-      const el = e.target;
-      if (el.id === "title-input") return;
-      if (el.dataset.type === "group") {
-        const label = el.dataset.label;
-        let hidden = [...(this._config.hidden_groups || [])];
-        hidden = el.checked
-          ? hidden.filter(l => l !== label)
-          : [...hidden.filter(l => l !== label), label];
-        this._dispatch({ ...this._config, hidden_groups: hidden });
-      } else if (el.dataset.type === "stat") {
-        const key = el.dataset.key;
-        let hidden = [...(this._config.hidden_stats || [])];
-        hidden = el.checked
-          ? hidden.filter(k => k !== key)
-          : [...hidden.filter(k => k !== key), key];
-        this._dispatch({ ...this._config, hidden_stats: hidden });
-      }
-    });
   }
 }
 
@@ -438,6 +440,7 @@ window.customCards.push({
   type: "ha-instance-stats-card",
   name: "HA Instance Stats",
   description: "Displays your Home Assistant instance statistics grouped by category.",
+  configurable: true,
   preview: false,
   documentationURL: "https://github.com/olli-dot-dev/ha-instance-stats",
 });
