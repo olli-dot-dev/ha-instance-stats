@@ -113,6 +113,20 @@ function formatValue(stat, state) {
 }
 
 class HAInstanceStatsCard extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+    this.shadowRoot.addEventListener("click", e => {
+      const item = e.target.closest("[data-entity-id]");
+      if (!item) return;
+      this.dispatchEvent(new CustomEvent("hass-more-info", {
+        detail: { entityId: item.dataset.entityId },
+        bubbles: true,
+        composed: true,
+      }));
+    });
+  }
+
   set hass(hass) {
     // Rebuild map until all stats are resolved
     const total = STAT_GROUPS.reduce((s, g) => s + g.stats.length, 0);
@@ -184,8 +198,10 @@ class HAInstanceStatsCard extends HTMLElement {
   getCardSize() { return 10; }
 
   _renderGroup(group, hiddenStats = []) {
+    const useColors = (this._config?.color_mode || "colored") === "colored";
     const items = group.stats.filter(s => !hiddenStats.includes(s.key)).map((stat) => {
-      const stateObj = this._hass.states[this._entityMap?.[stat.key] ?? stat.entity];
+      const entityId = this._entityMap?.[stat.key] ?? stat.entity;
+      const stateObj = this._hass.states[entityId];
       const rawState = stateObj ? stateObj.state : null;
       const displayValue = formatValue(stat, rawState);
       const unavailable = !rawState || rawState === "unavailable" || rawState === "unknown";
@@ -198,15 +214,16 @@ class HAInstanceStatsCard extends HTMLElement {
         extraHtml = `<div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${barColor}"></div></div>`;
       }
 
-      const itemColor = unavailable ? "var(--secondary-text-color, #757575)" : (isAlertActive ? "#EF5350" : stat.color);
+      const iconColor = unavailable ? "var(--secondary-text-color, #757575)" : (isAlertActive ? "#EF5350" : (useColors ? stat.color : "var(--state-icon-color, #44739e)"));
+      const valueColor = unavailable ? "var(--secondary-text-color, #757575)" : (isAlertActive ? "#EF5350" : (useColors ? stat.color : "var(--primary-text-color)"));
       const itemBorder = isAlertActive ? "border:1px solid rgba(239,83,80,0.4);background:rgba(239,83,80,0.07);" : "";
 
       return `
-        <div class="stat-item${unavailable ? " unavailable" : ""}" style="${itemBorder}">
-          <div class="stat-icon">${renderIcon(stat.icon, itemColor)}</div>
+        <div class="stat-item${unavailable ? " unavailable" : ""}" data-entity-id="${entityId}" style="${itemBorder}">
+          <div class="stat-icon">${renderIcon(stat.icon, iconColor)}</div>
           <div class="stat-content">
             <div class="stat-label">${stat.label}</div>
-            <div class="stat-value" style="color:${itemColor}">
+            <div class="stat-value" style="color:${valueColor}">
               ${displayValue}${stat.unit && !unavailable && !stat.isTimestamp ? `<span class="stat-unit">${stat.unit}</span>` : ""}
             </div>
             ${extraHtml}
@@ -224,7 +241,6 @@ class HAInstanceStatsCard extends HTMLElement {
   _render() {
     if (!this._hass || !this._config) return;
     try {
-      if (!this.shadowRoot) this.attachShadow({ mode: "open" });
       if (Object.keys(this._entityMap || {}).length === 0) {
         this.shadowRoot.innerHTML = `<div style="padding:16px;color:var(--warning-color,#ff9800);font-family:var(--primary-font-family,sans-serif)">
           <b>HA Instance Stats</b>: Waiting for sensor data&hellip;<br>
@@ -271,7 +287,7 @@ class HAInstanceStatsCard extends HTMLElement {
           border-radius: 10px; padding: 11px 13px;
           display: flex; align-items: flex-start; gap: 10px;
           border: 1px solid var(--divider-color, rgba(0,0,0,0.08));
-          transition: background 0.15s;
+          transition: background 0.15s; cursor: pointer;
         }
         .stat-item:hover { background: var(--primary-background-color, rgba(0,0,0,0.08)); }
         .stat-item.unavailable { opacity: 0.4; }
@@ -307,7 +323,7 @@ class HAInstanceStatsCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this._collapsedGroups = new Set();
+    this._collapsedGroups = new Set(STAT_GROUPS.map(g => g.label));
     // Single listeners on the persistent shadowRoot — survive innerHTML replacements.
     this.shadowRoot.addEventListener("change", e => this._handleChange(e));
     this.shadowRoot.addEventListener("click", e => this._handleClick(e));
@@ -344,6 +360,8 @@ class HAInstanceStatsCardEditor extends HTMLElement {
     const el = e.target;
     if (el.id === "title-input") {
       this._dispatch({ ...this._config, title: el.value });
+    } else if (el.id === "color-mode-select") {
+      this._dispatch({ ...this._config, color_mode: el.value });
     } else if (el.dataset.type === "group") {
       const label = el.dataset.label;
       let hidden = [...(this._config.hidden_groups || [])];
@@ -435,12 +453,20 @@ class HAInstanceStatsCardEditor extends HTMLElement {
           <div class="field-label">Title</div>
           <input class="text-input" id="title-input" type="text" placeholder="Home Assistant Statistics">
         </div>
+        <div class="field">
+          <div class="field-label">Color mode</div>
+          <select class="text-input" id="color-mode-select">
+            <option value="colored">Colored</option>
+            <option value="ha">HA default</option>
+          </select>
+        </div>
         <div class="section-title">Groups &amp; Entities</div>
         ${groupsHtml}
       </div>`;
 
-    // Set value imperatively to avoid HTML-encoding the title string.
+    // Set values imperatively to avoid HTML-encoding and ensure correct option selection.
     this.shadowRoot.getElementById("title-input").value = cfg.title || "";
+    this.shadowRoot.getElementById("color-mode-select").value = cfg.color_mode || "colored";
   }
 }
 
