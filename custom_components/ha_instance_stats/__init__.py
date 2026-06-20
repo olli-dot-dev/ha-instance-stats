@@ -72,7 +72,7 @@ async def _async_register_lovelace_resource(
     # 1. Frontend module injection (session-scoped, works in all Lovelace modes)
     try:
         from homeassistant.components import frontend as _frontend
-        for _fn_name in ("add_extra_js_url", "add_extra_module_url"):
+        for _fn_name in ("add_extra_module_url", "add_extra_js_url"):
             _fn = getattr(_frontend, _fn_name, None)
             if callable(_fn):
                 _fn(hass, url)

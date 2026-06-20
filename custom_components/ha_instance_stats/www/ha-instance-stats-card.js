@@ -286,11 +286,6 @@ class HAInstanceStatsCard extends HTMLElement {
         .stat-unit { font-size: 0.62rem; font-weight: 400; margin-left: 2px; opacity: 0.7; vertical-align: middle; }
         .bar-track { margin-top: 6px; height: 3px; border-radius: 2px; background: var(--divider-color, rgba(0,0,0,0.1)); overflow: hidden; }
         .bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
-        .footer {
-          margin-top: 14px; padding-top: 10px;
-          border-top: 1px solid var(--divider-color, rgba(0,0,0,0.08));
-          font-size: 0.67rem; color: var(--disabled-text-color, #9e9e9e); text-align: right;
-        }
       </style>
       <div class="card">
         <div class="card-header">
@@ -301,7 +296,6 @@ class HAInstanceStatsCard extends HTMLElement {
           </div>
         </div>
         ${groups}
-        <div class="footer">HA Instance Stats v${CARD_VERSION}</div>
       </div>`;
     } catch (e) {
       console.error("[ha-instance-stats-card] render error:", e);
@@ -313,8 +307,10 @@ class HAInstanceStatsCardEditor extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    // Single listener on the persistent shadowRoot — survives innerHTML replacements.
+    this._collapsedGroups = new Set();
+    // Single listeners on the persistent shadowRoot — survive innerHTML replacements.
     this.shadowRoot.addEventListener("change", e => this._handleChange(e));
+    this.shadowRoot.addEventListener("click", e => this._handleClick(e));
   }
 
   set hass(hass) { this._hass = hass; }
@@ -330,6 +326,18 @@ class HAInstanceStatsCardEditor extends HTMLElement {
       bubbles: true,
       composed: true,
     }));
+  }
+
+  _handleClick(e) {
+    const btn = e.target.closest("[data-type='collapse']");
+    if (!btn) return;
+    const label = btn.dataset.label;
+    if (this._collapsedGroups.has(label)) {
+      this._collapsedGroups.delete(label);
+    } else {
+      this._collapsedGroups.add(label);
+    }
+    this._render();
   }
 
   _handleChange(e) {
@@ -361,6 +369,7 @@ class HAInstanceStatsCardEditor extends HTMLElement {
 
     const groupsHtml = STAT_GROUPS.map(g => {
       const groupHidden = hiddenGroups.includes(g.label);
+      const collapsed = this._collapsedGroups.has(g.label);
       const statsHtml = g.stats.map(s => `
         <label class="stat-row">
           <input type="checkbox" data-type="stat" data-key="${s.key}"${hiddenStats.includes(s.key) ? "" : " checked"}>
@@ -368,11 +377,14 @@ class HAInstanceStatsCardEditor extends HTMLElement {
         </label>`).join("");
       return `
         <div class="group-block">
-          <label class="group-row">
-            <input type="checkbox" data-type="group" data-label="${g.label}"${groupHidden ? "" : " checked"}>
-            <strong>${g.label}</strong>
-          </label>
-          <div class="stat-list${groupHidden ? " hidden" : ""}">${statsHtml}</div>
+          <div class="group-row">
+            <button class="collapse-btn" data-type="collapse" data-label="${g.label}" aria-label="Toggle">${collapsed ? "▶" : "▼"}</button>
+            <label class="group-check-label">
+              <input type="checkbox" data-type="group" data-label="${g.label}"${groupHidden ? "" : " checked"}>
+              <strong>${g.label}</strong>
+            </label>
+          </div>
+          <div class="stat-list${collapsed ? " hidden" : ""}">${statsHtml}</div>
         </div>`;
     }).join("");
 
@@ -396,12 +408,17 @@ class HAInstanceStatsCardEditor extends HTMLElement {
           margin: 20px 0 10px;
         }
         .group-block { margin-bottom: 4px; }
-        .group-row {
-          display: flex; align-items: center; gap: 10px;
-          padding: 6px 4px; cursor: pointer; user-select: none;
-          font-size: 0.9rem;
+        .group-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+        .collapse-btn {
+          background: none; border: none; cursor: pointer; flex-shrink: 0;
+          color: var(--secondary-text-color, #757575); font-size: 0.7rem;
+          padding: 2px 4px; line-height: 1;
         }
-        .stat-list { padding-left: 28px; }
+        .group-check-label {
+          display: flex; align-items: center; gap: 8px;
+          cursor: pointer; user-select: none; font-size: 0.9rem; flex: 1;
+        }
+        .stat-list { padding-left: 36px; }
         .stat-list.hidden { display: none; }
         .stat-row {
           display: flex; align-items: center; gap: 8px;
