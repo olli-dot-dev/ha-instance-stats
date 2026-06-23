@@ -101,9 +101,9 @@ Lovelace Card (ha-instance-stats-card.js)
 
 ### Offene Punkte
 - [ ] **Tests fehlen** – noch keine `pytest`-Tests vorhanden; Priorität: `coordinator.py` testen
-- [ ] **GitHub Actions** – kein CI/CD-Workflow, kein HACS-Validation-Workflow
-- [ ] **GitHub-Repository** noch nicht erstellt
-- [ ] **Releases** – kein `release.yaml`-Workflow für automatische HACS-Releases
+- [x] **GitHub Actions** – `validate.yaml` und `release.yaml` vorhanden
+- [x] **GitHub-Repository** – vorhanden unter `github.com/olli-dot-dev/ha-instance-stats`
+- [x] **Releases** – `release.yaml`-Workflow vorhanden; v2.1.0 ist das erste Release
 - [ ] **Entity-ID-Mapping** – die Entity-IDs in der JS-Karte sind hartcodiert; bei Namensänderungen müssen beide Seiten synchron angepasst werden
 
 ### Bekannte Einschränkungen
@@ -148,8 +148,6 @@ hacs-action validate
 
 ## Nächste sinnvolle Schritte (Vorschläge)
 
-1. **GitHub-Repo erstellen** und `git init` + erster Commit
-2. **HACS-Validation-Workflow** einrichten (`.github/workflows/validate.yaml`)
-3. **pytest-Tests** für `coordinator.py` schreiben (mock `hass`, mock Dateisystem)
-4. **Release-Workflow** für automatische HACS-Releases via GitHub Releases
-5. **Konfigurierbarer Scan-Intervall** – derzeit in `const.py` fix auf 5 Min, sollte aus `config_flow` kommen
+1. **pytest-Tests** für `coordinator.py` schreiben (mock `hass`, mock Dateisystem)
+2. **Konfigurierbarer Scan-Intervall** – derzeit in `const.py` fix auf 5 Min, sollte aus `config_flow` kommen
+3. **HACS einreichen** – PR an `hacs/default` öffnen, sobald Validation-Workflow grün ist

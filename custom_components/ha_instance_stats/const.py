@@ -1,8 +1,5 @@
 """Constants for HA Instance Stats."""
-from datetime import timedelta
-
 DOMAIN = "ha_instance_stats"
-SCAN_INTERVAL = timedelta(minutes=5)
 
 CONF_UPDATE_INTERVAL = "update_interval"
 DEFAULT_UPDATE_INTERVAL = 5  # minutes

@@ -5,7 +5,7 @@ import logging
 import platform
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
@@ -21,11 +21,12 @@ def _count_yaml_lines(path: Path) -> int | None:
                 count += 1
     return count
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, SCAN_INTERVAL
+from .const import CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,8 +34,16 @@ _LOGGER = logging.getLogger(__name__)
 class HAInstanceStatsCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch all HA instance statistics."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+        interval_minutes = (
+            entry.options.get(CONF_UPDATE_INTERVAL)
+            or entry.data.get(CONF_UPDATE_INTERVAL)
+            or DEFAULT_UPDATE_INTERVAL
+        )
+        super().__init__(
+            hass, _LOGGER, name=DOMAIN,
+            update_interval=timedelta(minutes=interval_minutes),
+        )
 
     async def _async_update_data(self) -> dict:
         """Fetch all statistics."""
