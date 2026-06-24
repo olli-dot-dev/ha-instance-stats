@@ -4,11 +4,19 @@
  * Version: 2.0.0
  */
 
-const CARD_VERSION = "2.1.1";
+const CARD_VERSION = "2.2.0";
 
 // fn = friendly_name HA assigns (= "HA Stats " + description.name from sensor.py)
 // Used for robust entity discovery via hass.states regardless of assigned entity_id
 const STAT_GROUPS = [
+  {
+    label: "Health",
+    stats: [
+      { key: "unavailable_entities", fn: "HA Stats Unavailable Entities", entity: "sensor.ha_stats_unavailable_entities", label: "Unavailable Entities", icon: "mdi:alert-circle", unit: "", color: "#EF9A9A", isAlert: true },
+      { key: "pending_updates",      fn: "HA Stats Pending Updates",      entity: "sensor.ha_stats_pending_updates",      label: "Pending Updates",      icon: "mdi:update",       unit: "", color: "#FFD54F", isAlert: true },
+      { key: "battery_low",          fn: "HA Stats Battery Low",          entity: "sensor.ha_stats_battery_low",          label: "Battery Low",          icon: "mdi:battery-alert",unit: "", color: "#FFCC80", isAlert: true },
+    ],
+  },
   {
     label: "Configuration",
     stats: [
@@ -62,6 +70,9 @@ const STAT_GROUPS = [
 
 // --- MDI SVG paths ---
 const MDI_PATHS = {
+  "mdi:alert-circle":  "M13 13h-2V7h2m0 8h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z",
+  "mdi:update":        "M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1a6.875 6.875 0 0 0 0 9.79 7.02 7.02 0 0 0 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58a8.987 8.987 0 0 1 12.65 0L21 3v7.12M12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z",
+  "mdi:battery-alert": "M16 18H6V6h10m0-4h-1V0h-6v2H6C4.89 2 4 2.89 4 4v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4c0-1.11-.89-2-2-2m-3 14h-2v-2h2v2m0-4h-2V8h2v4z",
   "mdi:robot":            "M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2M7.5 13a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1m7 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1M3 19a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-1H3v1z",
   "mdi:robot-dead":       "M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2M8 13l1.5 1.5L11 13l1.5 1.5L14 13l-1.5 1.5L14 16l-1.5-1.5L11 16l-1.5-1.5L8 16l1.5-1.5L8 13M3 19a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-1H3v1z",
   "mdi:file-code":        "M14 2H6a2 2 0 0 0-2 2v16c0 1.11.89 2 2 2h12a2 2 0 0 0 2-2V8L14 2m-1 1.5L18.5 9H13V3.5M10.08 14.07l-1.49-1.5 1.49-1.5L9 9.93 6 13l3 3 1.08-1.93m3.84 1.86L17 13l-3-3-1.08 1.07 1.49 1.5-1.49 1.5L14 15.93z",

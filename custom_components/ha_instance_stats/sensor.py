@@ -289,6 +289,28 @@ SENSOR_DESCRIPTIONS: list[HAStatsSensorDescription] = [
         icon="mdi:store",
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    # --- Health ---
+    HAStatsSensorDescription(
+        key="unavailable_entity_count",
+        data_key="unavailable_entity_count",
+        name="Unavailable Entities",
+        icon="mdi:alert-circle",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
+        key="pending_updates_count",
+        data_key="pending_updates_count",
+        name="Pending Updates",
+        icon="mdi:update",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
+        key="battery_low_count",
+        data_key="battery_low_count",
+        name="Battery Low",
+        icon="mdi:battery-alert",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
     # --- Persons & Zones ---
     HAStatsSensorDescription(
         key="person_count",
@@ -398,5 +420,11 @@ class HAInstanceStatsSensor(CoordinatorEntity, SensorEntity):
             attrs["implementation"] = data.get("python_implementation")
         elif self.entity_description.key == "person_count":
             attrs["persons_home"] = data.get("persons_home_count")
+        elif self.entity_description.key == "unavailable_entity_count":
+            attrs["entity_ids"] = data.get("unavailable_entity_ids", [])
+        elif self.entity_description.key == "pending_updates_count":
+            attrs["entity_ids"] = data.get("pending_update_ids", [])
+        elif self.entity_description.key == "battery_low_count":
+            attrs["entities"] = data.get("battery_low_entities", [])
 
         return attrs

@@ -24,6 +24,7 @@ def _count_yaml_lines(path: Path) -> int | None:
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL, DOMAIN
@@ -128,6 +129,49 @@ class HAInstanceStatsCoordinator(DataUpdateCoordinator):
             data["zone_count"] = len(self.hass.states.async_entity_ids("zone"))
         except Exception:
             data["zone_count"] = None
+
+        try:
+            unavailable = [
+                s.entity_id for s in self.hass.states.async_all()
+                if s.state == "unavailable"
+            ]
+            data["unavailable_entity_count"] = len(unavailable)
+            data["unavailable_entity_ids"] = unavailable[:20]
+        except Exception:
+            data["unavailable_entity_count"] = None
+            data["unavailable_entity_ids"] = []
+
+        try:
+            update_ids = self.hass.states.async_entity_ids("update")
+            pending = [
+                eid for eid in update_ids
+                if (s := self.hass.states.get(eid)) and s.state == "on"
+            ]
+            data["pending_updates_count"] = len(pending)
+            data["pending_update_ids"] = pending[:20]
+        except Exception:
+            data["pending_updates_count"] = None
+            data["pending_update_ids"] = []
+
+        try:
+            er_registry = er.async_get(self.hass)
+            battery_low = []
+            for entity in er_registry.entities.values():
+                dc = entity.device_class or entity.original_device_class
+                if dc == "battery":
+                    state = self.hass.states.get(entity.entity_id)
+                    if state:
+                        try:
+                            level = float(state.state)
+                            if level < 20:
+                                battery_low.append({"entity_id": entity.entity_id, "level": round(level, 1)})
+                        except (ValueError, TypeError):
+                            pass
+            data["battery_low_count"] = len(battery_low)
+            data["battery_low_entities"] = battery_low[:20]
+        except Exception:
+            data["battery_low_count"] = None
+            data["battery_low_entities"] = []
 
         try:
             from homeassistant.const import __version__

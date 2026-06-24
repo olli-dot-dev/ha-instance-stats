@@ -161,13 +161,24 @@ def test_collect_io_data_recorder_db_size(tmp_path):
 # _collect_ha_data — HA state machine logic
 # ---------------------------------------------------------------------------
 
+def _ha_data_patches():
+    """Context manager that patches both dr and er for _collect_ha_data tests."""
+    from contextlib import ExitStack
+    from unittest.mock import patch, MagicMock
+    stack = ExitStack()
+    mock_dr = stack.enter_context(patch("custom_components.ha_instance_stats.coordinator.dr"))
+    mock_er = stack.enter_context(patch("custom_components.ha_instance_stats.coordinator.er"))
+    mock_dr.async_get.return_value = MagicMock(devices={})
+    mock_er.async_get.return_value = MagicMock(entities={})
+    return stack
+
+
 def test_collect_ha_data_automation_count():
     coord = _make_coordinator()
     coord.hass = _hass_with_states(
         entity_ids_by_domain={"automation": ["automation.a", "automation.b"]},
     )
-    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr:
-        mock_dr.async_get.return_value = MagicMock(devices={})
+    with _ha_data_patches():
         result = coord._collect_ha_data()
     assert result["automation_count"] == 2
 
@@ -183,8 +194,7 @@ def test_collect_ha_data_failed_automations():
         entity_ids_by_domain={"automation": list(states)},
         states_by_id=states,
     )
-    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr:
-        mock_dr.async_get.return_value = MagicMock(devices={})
+    with _ha_data_patches():
         result = coord._collect_ha_data()
     assert result["automation_failed_count"] == 2
     assert set(result["automation_failed_ids"]) == {"automation.b", "automation.c"}
@@ -192,9 +202,8 @@ def test_collect_ha_data_failed_automations():
 
 def test_collect_ha_data_entity_count():
     coord = _make_coordinator()
-    coord.hass = _hass_with_states(all_states=[MagicMock()] * 37)
-    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr:
-        mock_dr.async_get.return_value = MagicMock(devices={})
+    coord.hass = _hass_with_states(all_states=[MagicMock(entity_id=f"s.{i}", state="on") for i in range(37)])
+    with _ha_data_patches():
         result = coord._collect_ha_data()
     assert result["entity_count"] == 37
 
@@ -202,8 +211,10 @@ def test_collect_ha_data_entity_count():
 def test_collect_ha_data_device_count():
     coord = _make_coordinator()
     coord.hass = _hass_with_states()
-    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr:
+    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr, \
+         patch("custom_components.ha_instance_stats.coordinator.er") as mock_er:
         mock_dr.async_get.return_value = MagicMock(devices={"d1": 1, "d2": 2, "d3": 3})
+        mock_er.async_get.return_value = MagicMock(entities={})
         result = coord._collect_ha_data()
     assert result["device_count"] == 3
 
@@ -218,8 +229,88 @@ def test_collect_ha_data_persons_home(tmp_path):
         entity_ids_by_domain={"person": list(states)},
         states_by_id=states,
     )
-    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr:
-        mock_dr.async_get.return_value = MagicMock(devices={})
+    with _ha_data_patches():
         result = coord._collect_ha_data()
     assert result["person_count"] == 2
     assert result["persons_home_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# _collect_ha_data — health sensors
+# ---------------------------------------------------------------------------
+
+def test_collect_ha_data_unavailable_entity_count():
+    coord = _make_coordinator()
+    all_states = [
+        MagicMock(entity_id="sensor.a", state="unavailable"),
+        MagicMock(entity_id="sensor.b", state="on"),
+        MagicMock(entity_id="sensor.c", state="unavailable"),
+    ]
+    coord.hass = _hass_with_states(all_states=all_states)
+    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr, \
+         patch("custom_components.ha_instance_stats.coordinator.er") as mock_er:
+        mock_dr.async_get.return_value = MagicMock(devices={})
+        mock_er.async_get.return_value = MagicMock(entities={})
+        result = coord._collect_ha_data()
+    assert result["unavailable_entity_count"] == 2
+    assert set(result["unavailable_entity_ids"]) == {"sensor.a", "sensor.c"}
+
+
+def test_collect_ha_data_pending_updates():
+    coord = _make_coordinator()
+    update_states = {
+        "update.ha": MagicMock(state="on"),
+        "update.addon": MagicMock(state="on"),
+        "update.hacs": MagicMock(state="off"),
+    }
+    coord.hass = _hass_with_states(
+        entity_ids_by_domain={"update": list(update_states)},
+        states_by_id=update_states,
+    )
+    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr, \
+         patch("custom_components.ha_instance_stats.coordinator.er") as mock_er:
+        mock_dr.async_get.return_value = MagicMock(devices={})
+        mock_er.async_get.return_value = MagicMock(entities={})
+        result = coord._collect_ha_data()
+    assert result["pending_updates_count"] == 2
+    assert set(result["pending_update_ids"]) == {"update.ha", "update.addon"}
+
+
+def test_collect_ha_data_battery_low():
+    coord = _make_coordinator()
+    coord.hass = _hass_with_states()
+
+    low_entity = MagicMock()
+    low_entity.entity_id = "sensor.door_battery"
+    low_entity.device_class = "battery"
+    low_entity.original_device_class = None
+
+    ok_entity = MagicMock()
+    ok_entity.entity_id = "sensor.phone_battery"
+    ok_entity.device_class = "battery"
+    ok_entity.original_device_class = None
+
+    other_entity = MagicMock()
+    other_entity.entity_id = "sensor.temperature"
+    other_entity.device_class = "temperature"
+    other_entity.original_device_class = None
+
+    states = {
+        "sensor.door_battery": MagicMock(state="12"),
+        "sensor.phone_battery": MagicMock(state="85"),
+    }
+    coord.hass.states.get.side_effect = lambda eid: states.get(eid)
+
+    with patch("custom_components.ha_instance_stats.coordinator.dr") as mock_dr, \
+         patch("custom_components.ha_instance_stats.coordinator.er") as mock_er:
+        mock_dr.async_get.return_value = MagicMock(devices={})
+        mock_er.async_get.return_value = MagicMock(entities={
+            "sensor.door_battery": low_entity,
+            "sensor.phone_battery": ok_entity,
+            "sensor.temperature": other_entity,
+        })
+        result = coord._collect_ha_data()
+
+    assert result["battery_low_count"] == 1
+    assert result["battery_low_entities"][0]["entity_id"] == "sensor.door_battery"
+    assert result["battery_low_entities"][0]["level"] == 12.0
