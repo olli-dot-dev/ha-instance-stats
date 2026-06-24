@@ -289,6 +289,28 @@ SENSOR_DESCRIPTIONS: list[HAStatsSensorDescription] = [
         icon="mdi:store",
         state_class=SensorStateClass.MEASUREMENT,
     ),
+    # --- Helpers & Dashboards ---
+    HAStatsSensorDescription(
+        key="helper_count",
+        data_key="helper_count",
+        name="Helper Count",
+        icon="mdi:toggle-switch-outline",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
+        key="dashboard_count",
+        data_key="dashboard_count",
+        name="Dashboard Count",
+        icon="mdi:view-dashboard",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    HAStatsSensorDescription(
+        key="custom_component_count",
+        data_key="custom_component_count",
+        name="Custom Components",
+        icon="mdi:puzzle-plus",
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
     # --- Health ---
     HAStatsSensorDescription(
         key="unavailable_entity_count",
@@ -420,6 +442,8 @@ class HAInstanceStatsSensor(CoordinatorEntity, SensorEntity):
             attrs["implementation"] = data.get("python_implementation")
         elif self.entity_description.key == "person_count":
             attrs["persons_home"] = data.get("persons_home_count")
+        elif self.entity_description.key == "helper_count":
+            attrs["by_type"] = data.get("helper_counts_by_type", {})
         elif self.entity_description.key == "unavailable_entity_count":
             attrs["entity_ids"] = data.get("unavailable_entity_ids", [])
         elif self.entity_description.key == "pending_updates_count":

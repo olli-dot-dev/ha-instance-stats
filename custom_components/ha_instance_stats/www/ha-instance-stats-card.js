@@ -4,7 +4,7 @@
  * Version: 2.0.0
  */
 
-const CARD_VERSION = "2.2.0";
+const CARD_VERSION = "2.3.0";
 
 // fn = friendly_name HA assigns (= "HA Stats " + description.name from sensor.py)
 // Used for robust entity discovery via hass.states regardless of assigned entity_id
@@ -28,6 +28,8 @@ const STAT_GROUPS = [
       { key: "scripts",                fn: "HA Stats Script Count",            entity: "sensor.ha_stats_script_count",              label: "Scripts",               icon: "mdi:script-text",      unit: "",   color: "#80CBC4" },
       { key: "scripts_yaml_lines",     fn: "HA Stats Scripts YAML Lines",      entity: "sensor.ha_stats_scripts_yaml_lines",        label: "Script Lines",          icon: "mdi:code-braces",      unit: "",   color: "#80DEEA" },
       { key: "scenes",                 fn: "HA Stats Scene Count",             entity: "sensor.ha_stats_scene_count",               label: "Scenes",                icon: "mdi:palette",          unit: "",   color: "#FFCC80" },
+      { key: "helpers",                fn: "HA Stats Helper Count",            entity: "sensor.ha_stats_helper_count",              label: "Helpers",               icon: "mdi:toggle-switch-outline", unit: "", color: "#80CBC4" },
+      { key: "dashboards",             fn: "HA Stats Dashboard Count",         entity: "sensor.ha_stats_dashboard_count",           label: "Dashboards",            icon: "mdi:view-dashboard",   unit: "",   color: "#90CAF9" },
     ],
   },
   {
@@ -63,14 +65,18 @@ const STAT_GROUPS = [
       { key: "py_version",  fn: "HA Stats Python Version",        entity: "sensor.ha_stats_python_version",        label: "Python Version",   icon: "mdi:language-python",    unit: "",  color: "#FFD54F" },
       { key: "config_size", fn: "HA Stats Config Directory Size", entity: "sensor.ha_stats_config_directory_size", label: "Config Directory", icon: "mdi:folder-information", unit: "MB",color: "#BCAAA4" },
       { key: "db_size",     fn: "HA Stats Recorder DB Size",      entity: "sensor.ha_stats_recorder_db_size",      label: "Recorder DB",      icon: "mdi:database",           unit: "MB",color: "#80CBC4" },
-      { key: "log_size",    fn: "HA Stats Log File Size",         entity: "sensor.ha_stats_log_file_size",         label: "Log File",         icon: "mdi:text-box-outline",   unit: "KB",color: "#B0BEC5" },
+      { key: "log_size",        fn: "HA Stats Log File Size",       entity: "sensor.ha_stats_log_file_size",         label: "Log File",          icon: "mdi:text-box-outline", unit: "KB", color: "#B0BEC5" },
+      { key: "custom_components", fn: "HA Stats Custom Components", entity: "sensor.ha_stats_custom_components",     label: "Custom Components", icon: "mdi:puzzle-plus",      unit: "",   color: "#CE93D8" },
     ],
   },
 ];
 
 // --- MDI SVG paths ---
 const MDI_PATHS = {
-  "mdi:alert-circle":  "M13 13h-2V7h2m0 8h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z",
+  "mdi:toggle-switch-outline": "M7 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4h10a4 4 0 0 0 4-4 4 4 0 0 0-4-4H7m0 2h10a2 2 0 0 1 2 2 2 2 0 0 1-2 2H7a2 2 0 0 1-2-2 2 2 0 0 1 2-2M7 12a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2z",
+  "mdi:view-dashboard":        "M13 3v6h8V3m-8 18h8V11h-8M3 21h8v-6H3m0-2h8V3H3v10z",
+  "mdi:puzzle-plus":           "M20.5 11H19V7a2 2 0 0 0-2-2h-4V3.5A2.5 2.5 0 0 0 10.5 1 2.5 2.5 0 0 0 8 3.5V5H4a2 2 0 0 0-2 2v3.8h1.5c1.5 0 2.7 1.2 2.7 2.7S5 16.2 3.5 16.2H2V20a2 2 0 0 0 2 2h3.8v-1.5c0-1.5 1.2-2.7 2.7-2.7 1.5 0 2.7 1.2 2.7 2.7V22H17a2 2 0 0 0 2-2v-4h1.5A2.5 2.5 0 0 0 23 13.5 2.5 2.5 0 0 0 20.5 11z",
+  "mdi:alert-circle":          "M13 13h-2V7h2m0 8h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2z",
   "mdi:update":        "M21 10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-.1a6.875 6.875 0 0 0 0 9.79 7.02 7.02 0 0 0 9.88 0C18.32 15.65 19 14.08 19 12.1h2c0 1.98-.88 4.55-2.64 6.29-3.51 3.48-9.21 3.48-12.72 0-3.5-3.47-3.53-9.11-.02-12.58a8.987 8.987 0 0 1 12.65 0L21 3v7.12M12.5 8v4.25l3.5 2.08-.72 1.21L11 13V8h1.5z",
   "mdi:battery-alert": "M16 18H6V6h10m0-4h-1V0h-6v2H6C4.89 2 4 2.89 4 4v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4c0-1.11-.89-2-2-2m-3 14h-2v-2h2v2m0-4h-2V8h2v4z",
   "mdi:robot":            "M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7H3a7 7 0 0 1 7-7h1V5.73A2 2 0 0 1 10 4a2 2 0 0 1 2-2M7.5 13a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1m7 0a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-1M3 19a4 4 0 0 0 4 4h10a4 4 0 0 0 4-4v-1H3v1z",

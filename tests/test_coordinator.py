@@ -150,6 +150,21 @@ def test_collect_io_data_hacs_not_present(tmp_path):
     assert result["hacs_categories"] == {}
 
 
+def test_collect_io_data_custom_component_count(tmp_path):
+    cc = tmp_path / "custom_components"
+    cc.mkdir()
+    (cc / "my_integration").mkdir()
+    (cc / "another_one").mkdir()
+    (cc / "__pycache__").mkdir()
+    result = _make_coordinator()._collect_io_data(str(tmp_path))
+    assert result["custom_component_count"] == 2
+
+
+def test_collect_io_data_custom_component_count_missing(tmp_path):
+    result = _make_coordinator()._collect_io_data(str(tmp_path))
+    assert result["custom_component_count"] == 0
+
+
 def test_collect_io_data_recorder_db_size(tmp_path):
     db = tmp_path / "home-assistant_v2.db"
     db.write_bytes(b"x" * 1024 * 1024)  # 1 MB
@@ -238,6 +253,34 @@ def test_collect_ha_data_persons_home(tmp_path):
 # ---------------------------------------------------------------------------
 # _collect_ha_data — health sensors
 # ---------------------------------------------------------------------------
+
+def test_collect_ha_data_helper_count():
+    coord = _make_coordinator()
+    coord.hass = _hass_with_states(entity_ids_by_domain={
+        "input_boolean": ["input_boolean.a", "input_boolean.b"],
+        "input_number": ["input_number.x"],
+        "timer": ["timer.t"],
+    })
+    with _ha_data_patches():
+        result = coord._collect_ha_data()
+    assert result["helper_count"] == 4
+    assert result["helper_counts_by_type"]["input_boolean"] == 2
+    assert result["helper_counts_by_type"]["input_number"] == 1
+    assert result["helper_counts_by_type"]["timer"] == 1
+    assert result["helper_counts_by_type"]["counter"] == 0
+
+
+def test_collect_ha_data_dashboard_count():
+    coord = _make_coordinator()
+    coord.hass = _hass_with_states(config_entries=[
+        MagicMock(domain="lovelace"),
+        MagicMock(domain="lovelace"),
+        MagicMock(domain="zha"),
+    ])
+    with _ha_data_patches():
+        result = coord._collect_ha_data()
+    assert result["dashboard_count"] == 3  # 2 custom + 1 default
+
 
 def test_collect_ha_data_unavailable_entity_count():
     coord = _make_coordinator()

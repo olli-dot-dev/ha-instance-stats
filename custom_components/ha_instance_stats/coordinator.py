@@ -174,6 +174,33 @@ class HAInstanceStatsCoordinator(DataUpdateCoordinator):
             data["battery_low_entities"] = []
 
         try:
+            helper_domains = [
+                "input_boolean", "input_number", "input_select",
+                "input_text", "input_datetime", "input_button",
+                "timer", "counter", "schedule",
+            ]
+            counts_by_type = {}
+            total = 0
+            for domain in helper_domains:
+                count = len(self.hass.states.async_entity_ids(domain))
+                counts_by_type[domain] = count
+                total += count
+            data["helper_count"] = total
+            data["helper_counts_by_type"] = counts_by_type
+        except Exception:
+            data["helper_count"] = None
+            data["helper_counts_by_type"] = {}
+
+        try:
+            lovelace_entries = [
+                e for e in self.hass.config_entries.async_entries()
+                if e.domain == "lovelace"
+            ]
+            data["dashboard_count"] = len(lovelace_entries) + 1  # +1 for default Overview
+        except Exception:
+            data["dashboard_count"] = None
+
+        try:
             from homeassistant.const import __version__
             data["ha_version"] = __version__
         except Exception:
@@ -346,6 +373,18 @@ class HAInstanceStatsCoordinator(DataUpdateCoordinator):
         except Exception:
             data["hacs_installed_count"] = None
             data["hacs_categories"] = {}
+
+        try:
+            cc_path = config_path / "custom_components"
+            if cc_path.exists():
+                data["custom_component_count"] = sum(
+                    1 for d in cc_path.iterdir()
+                    if d.is_dir() and d.name != "__pycache__"
+                )
+            else:
+                data["custom_component_count"] = 0
+        except Exception:
+            data["custom_component_count"] = None
 
         try:
             data["python_version"] = platform.python_version()
