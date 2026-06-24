@@ -6,7 +6,6 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant import config_entries
-from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN, CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
@@ -50,15 +49,11 @@ class HAInstanceStatsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     def async_get_options_flow(config_entry):
         """Return the options flow."""
-        return HAInstanceStatsOptionsFlow(config_entry)
+        return HAInstanceStatsOptionsFlow()
 
 
 class HAInstanceStatsOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
