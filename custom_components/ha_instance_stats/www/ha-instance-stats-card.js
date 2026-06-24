@@ -4,7 +4,7 @@
  * Version: 2.0.0
  */
 
-const CARD_VERSION = "2.1.0";
+const CARD_VERSION = "2.1.1";
 
 // fn = friendly_name HA assigns (= "HA Stats " + description.name from sensor.py)
 // Used for robust entity discovery via hass.states regardless of assigned entity_id
